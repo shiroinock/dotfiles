@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+failed=0
+
+# 1. gitleaks — シークレット検出
+echo "=> gitleaks"
+if ! gitleaks git --pre-commit --staged --verbose; then
+  failed=1
+fi
+
+# 2. secretlint — シークレット検出（補強）
+staged_files=$(git diff --cached --name-only --diff-filter=ACMR)
+if [ -n "$staged_files" ]; then
+  echo "=> secretlint"
+  if ! echo "$staged_files" | xargs secretlint; then
+    failed=1
+  fi
+fi
+
+# 3. statix / deadnix — Nix 静的解析
+nix_files=$(git diff --cached --name-only --diff-filter=ACMR -- '*.nix')
+if [ -n "$nix_files" ]; then
+  echo "=> statix"
+  if ! echo "$nix_files" | xargs statix check; then
+    failed=1
+  fi
+
+  echo "=> deadnix"
+  if ! echo "$nix_files" | xargs deadnix; then
+    failed=1
+  fi
+fi
+
+if [ "$failed" -ne 0 ]; then
+  echo ""
+  echo "Pre-commit checks failed."
+  exit 1
+fi
+
+echo "All checks passed!"

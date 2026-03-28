@@ -25,6 +25,10 @@
     tree
     coreutils
     imagemagick
+
+    # Nix リンター
+    statix
+    deadnix
   ];
 
   # npm グローバルパッケージ用 prefix（nix の store は read-only のため）
@@ -34,7 +38,7 @@
 
   home.activation.installNpmGlobals = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     export PATH="${pkgs.nodejs_22}/bin:$PATH"
-    NPM_CONFIG_PREFIX="$HOME/.npm-global" ${pkgs.nodejs_22}/bin/npm install -g @aikidosec/safe-chain 2>/dev/null || true
+    NPM_CONFIG_PREFIX="$HOME/.npm-global" ${pkgs.nodejs_22}/bin/npm install -g @aikidosec/safe-chain secretlint @secretlint/secretlint-rule-preset-recommend 2>/dev/null || true
   '';
 
   # Starship
