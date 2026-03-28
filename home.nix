@@ -85,9 +85,14 @@
         name = "shiroino";
         email = "44906150+shiroinock@users.noreply.github.com";
       };
+      init.defaultBranch = "main";
+      push.autoSetupRemote = true;
+      pull.rebase = true;
     };
   };
 
-  # Starship の設定ファイル
+  # 設定ファイル
   xdg.configFile."starship.toml".source = ./config/starship.toml;
+  xdg.configFile."wezterm/wezterm.lua".source = ./config/wezterm/wezterm.lua;
+  xdg.configFile."wezterm/keybinds.lua".source = ./config/wezterm/keybinds.lua;
 }
