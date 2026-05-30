@@ -101,6 +101,10 @@
 
   # 設定ファイル
   xdg.configFile."starship.toml".source = ./config/starship.toml;
+  xdg.configFile."karabiner/karabiner.json" = {
+    source = ./config/karabiner/karabiner.json;
+    force = true;
+  };
   xdg.configFile."wezterm/wezterm.lua".source = ./config/wezterm/wezterm.lua;
   xdg.configFile."wezterm/keybinds.lua".source = ./config/wezterm/keybinds.lua;
 }

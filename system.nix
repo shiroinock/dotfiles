@@ -12,6 +12,7 @@
     casks = [
       "alt-tab"
       "ghostty"
+      "karabiner-elements"
       "keyclu"
       "raycast"
       "stats"
