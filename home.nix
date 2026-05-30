@@ -75,6 +75,10 @@
       # PATH
       export PATH="$HOME/.npm-global/bin:$HOME/.local/bin:$PATH"
 
+      # Apollo Rover / Router
+      [ -f "$HOME/.rover/env" ] && source "$HOME/.rover/env"
+      [ -f "$HOME/.router/env" ] && source "$HOME/.router/env"
+
       # Safe-chain
       source ~/.safe-chain/scripts/init-posix.sh
     '';
