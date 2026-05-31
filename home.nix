@@ -1,4 +1,4 @@
-{ pkgs, lib, ... }:
+{ pkgs, lib, config, ... }:
 let
   codexFontFamily = "PlemolJP Console NF";
 in
@@ -57,6 +57,12 @@ in
     ${pkgs.python3}/bin/python ${./config/codex/apply-fonts.py} \
       "$HOME/.codex/config.toml" \
       "${codexFontFamily}"
+  '';
+
+  home.activation.configureInputSources = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    ${pkgs.python3}/bin/python ${./config/macos/configure-input-sources.py} \
+      "${config.home.homeDirectory}/Library/Preferences/com.apple.HIToolbox.plist"
+    /usr/bin/killall cfprefsd 2>/dev/null || true
   '';
 
   # Starship

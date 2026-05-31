@@ -15,6 +15,7 @@
   homebrew = {
     enable = true;
     casks = [
+      "azookey"
       "ghostty"
       "karabiner-elements"
       "raycast"
