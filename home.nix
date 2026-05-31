@@ -19,6 +19,7 @@
     pnpm
     python3
     uv
+    ruby_3_4
     biome
     tenv
 
@@ -80,6 +81,11 @@
 
       # PATH
       export PATH="$HOME/.npm-global/bin:$HOME/.local/bin:$PATH"
+
+      # Homebrew (managed by nix-darwin)
+      if [ -x /opt/homebrew/bin/brew ]; then
+        eval "$(/opt/homebrew/bin/brew shellenv)"
+      fi
 
       # Apollo Rover / Router
       [ -f "$HOME/.rover/env" ] && source "$HOME/.rover/env"
