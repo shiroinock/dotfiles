@@ -6,6 +6,12 @@
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
   nixpkgs.config.allowUnfree = true;
 
+  # Fonts
+  fonts.packages = with pkgs; [
+    (ibm-plex.override { families = [ "sans" "sans-jp" ]; })
+    nerd-fonts.monaspace
+  ];
+
   # Homebrew（GUI アプリ用）
   homebrew = {
     enable = true;

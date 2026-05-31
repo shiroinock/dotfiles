@@ -165,4 +165,6 @@
   };
   xdg.configFile."wezterm/wezterm.lua".source = ./config/wezterm/wezterm.lua;
   xdg.configFile."wezterm/keybinds.lua".source = ./config/wezterm/keybinds.lua;
+  home.file."Library/Application Support/com.mitchellh.ghostty/config.ghostty".source =
+    ./config/ghostty/config.ghostty;
 }
