@@ -24,6 +24,7 @@
     tenv
 
     # CLI ツール
+    ripgrep
     jq
     tree
     coreutils
