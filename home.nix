@@ -1,6 +1,6 @@
 { pkgs, lib, ... }:
 let
-  codexFontFamily = "IBM Plex Sans JP, MonaspiceNe Nerd Font Mono";
+  codexFontFamily = "PlemolJP Console NF";
 in
 {
   home.stateVersion = "25.05";

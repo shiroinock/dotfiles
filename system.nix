@@ -8,8 +8,7 @@
 
   # Fonts
   fonts.packages = with pkgs; [
-    (ibm-plex.override { families = [ "sans" "sans-jp" ]; })
-    nerd-fonts.monaspace
+    plemoljp-nf
   ];
 
   # Homebrew（GUI アプリ用）
