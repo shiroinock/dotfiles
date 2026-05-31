@@ -17,6 +17,8 @@
     # 言語・ランタイム
     nodejs_22
     pnpm
+    python3
+    uv
     biome
     tenv
 
@@ -36,9 +38,13 @@
     prefix=~/.npm-global
   '';
 
+  home.file.".safe-chain/config.json".text = builtins.toJSON {
+    minimumPackageAgeHours = 48;
+  };
+
   home.activation.installNpmGlobals = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     export PATH="${pkgs.nodejs_22}/bin:$PATH"
-    NPM_CONFIG_PREFIX="$HOME/.npm-global" ${pkgs.nodejs_22}/bin/npm install -g @aikidosec/safe-chain secretlint @secretlint/secretlint-rule-preset-recommend 2>/dev/null || true
+    NPM_CONFIG_PREFIX="$HOME/.npm-global" ${pkgs.nodejs_22}/bin/npm install -g @aikidosec/safe-chain@1.5.3 secretlint @secretlint/secretlint-rule-preset-recommend 2>/dev/null || true
   '';
 
   # Starship
@@ -79,8 +85,53 @@
       [ -f "$HOME/.rover/env" ] && source "$HOME/.rover/env"
       [ -f "$HOME/.router/env" ] && source "$HOME/.router/env"
 
-      # Safe-chain
-      source ~/.safe-chain/scripts/init-posix.sh
+      # Safe Chain
+      printSafeChainWarning() {
+        printf "\033[43;30mWarning:\033[0m safe-chain is not available to protect you from installing malware. %s will run without it.\n" "$1"
+        printf "Install safe-chain by using \033[36mnpm install -g @aikidosec/safe-chain\033[0m.\n"
+      }
+
+      wrapSafeChainCommand() {
+        local original_cmd="$1"
+
+        if ! type -f "$original_cmd" > /dev/null 2>&1; then
+          command "$@"
+          return $?
+        fi
+
+        if command -v safe-chain > /dev/null 2>&1; then
+          safe-chain "$@"
+        else
+          printSafeChainWarning "$original_cmd"
+          command "$@"
+        fi
+      }
+
+      npx() { wrapSafeChainCommand "npx" "$@"; }
+      yarn() { wrapSafeChainCommand "yarn" "$@"; }
+      pnpm() { wrapSafeChainCommand "pnpm" "$@"; }
+      pnpx() { wrapSafeChainCommand "pnpx" "$@"; }
+      rush() { wrapSafeChainCommand "rush" "$@"; }
+      rushx() { wrapSafeChainCommand "rushx" "$@"; }
+      bun() { wrapSafeChainCommand "bun" "$@"; }
+      bunx() { wrapSafeChainCommand "bunx" "$@"; }
+      pip() { wrapSafeChainCommand "pip" "$@"; }
+      pip3() { wrapSafeChainCommand "pip3" "$@"; }
+      uv() { wrapSafeChainCommand "uv" "$@"; }
+      uvx() { wrapSafeChainCommand "uvx" "$@"; }
+      poetry() { wrapSafeChainCommand "poetry" "$@"; }
+      python() { wrapSafeChainCommand "python" "$@"; }
+      python3() { wrapSafeChainCommand "python3" "$@"; }
+      pipx() { wrapSafeChainCommand "pipx" "$@"; }
+
+      npm() {
+        if [[ "$1" == "-v" || "$1" == "--version" ]] && [[ $# -eq 1 ]]; then
+          command npm "$@"
+          return
+        fi
+
+        wrapSafeChainCommand "npm" "$@"
+      }
     '';
   };
 
