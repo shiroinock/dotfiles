@@ -1,4 +1,8 @@
-{ pkgs, lib, ... }: {
+{ pkgs, lib, ... }:
+let
+  codexFontFamily = "IBM Plex Sans JP, MonaspiceNe Nerd Font Mono";
+in
+{
   home.stateVersion = "25.05";
   home.username = "shiroino";
   home.homeDirectory = "/Users/shiroino";
@@ -47,6 +51,12 @@
   home.activation.installNpmGlobals = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     export PATH="${pkgs.nodejs_22}/bin:$PATH"
     NPM_CONFIG_PREFIX="$HOME/.npm-global" ${pkgs.nodejs_22}/bin/npm install -g @aikidosec/safe-chain@1.5.3 secretlint @secretlint/secretlint-rule-preset-recommend 2>/dev/null || true
+  '';
+
+  home.activation.configureCodexFonts = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    ${pkgs.python3}/bin/python ${./config/codex/apply-fonts.py} \
+      "$HOME/.codex/config.toml" \
+      "${codexFontFamily}"
   '';
 
   # Starship
