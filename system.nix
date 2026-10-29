@@ -31,7 +31,9 @@
       "karabiner-elements"
       "raycast"
     ];
-    onActivation.cleanup = "zap";
+    # Homebrew 7 removed --cleanup used by the pinned nix-darwin module.
+    # Keep removals explicit until the module is upgraded.
+    onActivation.cleanup = "none";
   };
 
   # macOS システム設定
