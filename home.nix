@@ -32,6 +32,7 @@ in
     jq
     tree
     coreutils
+    ffmpeg
     imagemagick
 
     # Nix リンター

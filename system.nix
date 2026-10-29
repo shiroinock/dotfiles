@@ -16,6 +16,7 @@
     enable = true;
     casks = [
       "azookey"
+      "blender"
       "ghostty"
       "karabiner-elements"
       "raycast"
