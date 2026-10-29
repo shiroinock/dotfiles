@@ -2417,7 +2417,7 @@
                 }
             ],
             "name": "onik",
-            "selected": true,
+            "selected": false,
             "virtual_hid_keyboard": {
                 "country_code": 0,
                 "keyboard_type_v2": "ansi"
@@ -2954,6 +2954,26 @@
                 "keyboard_type": "ansi",
                 "keyboard_type_v2": "ansi"
             }
+        },
+        {
+            "complex_modifications": {
+                "rules": []
+            },
+            "devices": [
+                {
+                    "identifiers": {
+                        "is_keyboard": true
+                    },
+                    "ignore": true
+                }
+            ],
+            "name": "Kanata (onik)",
+            "selected": true,
+            "virtual_hid_keyboard": {
+                "country_code": 0,
+                "keyboard_type_v2": "ansi"
+            },
+            "simple_modifications": []
         }
     ]
 }
