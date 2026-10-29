@@ -1,4 +1,4 @@
-{ pkgs, lib, config, ... }:
+{ pkgs, kandoPkgs, lib, config, ... }:
 let
   codexFontFamily = "PlemolJP Console NF";
 in
@@ -14,6 +14,9 @@ in
     git-lfs
     gh
     gitleaks
+
+    # GUI アプリ（Nix管理）
+    kandoPkgs.kando
 
     # エディタ
     neovim
