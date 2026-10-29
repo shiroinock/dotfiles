@@ -29,6 +29,6 @@ nix flake update
 ## Key Details
 
 - nixpkgs チャネルは **unstable** を使用
-- Homebrew は GUI アプリ (casks) 専用。`onActivation.cleanup = "zap"` により、casks リストから外れたアプリは自動削除される
+- Homebrew は GUI アプリ (casks) 専用。Homebrew 7 で固定版 nix-darwin モジュールの `--cleanup` が使えないため、`onActivation.cleanup = "none"` にしている。casks リストから外したアプリは自動削除されないので、`brew uninstall --cask` で手動で消す
 - zsh の `compinit` は Home Manager 側で `-u` 付きで実行し、system.nix 側では無効化している
 - npm グローバルパッケージは `~/.npm-global` に配置（nix store が read-only のため）
