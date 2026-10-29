@@ -7,6 +7,16 @@ in
   home.username = "shiroino";
   home.homeDirectory = "/Users/shiroino";
 
+  # emSign を除外した nix-darwin 管理の CA バンドルを、Nix 外のツールにも使わせる。
+  # NODE_OPTIONS=--use-openssl-ca は Claude Code(公式インストーラー版)の TLS を壊すため設定しない。
+  home.sessionVariables = {
+    SSL_CERT_FILE = "/etc/ssl/certs/ca-certificates.crt";
+    CURL_CA_BUNDLE = "/etc/ssl/certs/ca-certificates.crt";
+    GIT_SSL_CAINFO = "/etc/ssl/certs/ca-certificates.crt";
+    REQUESTS_CA_BUNDLE = "/etc/ssl/certs/ca-certificates.crt";
+    PIP_CERT = "/etc/ssl/certs/ca-certificates.crt";
+  };
+
   # パッケージ
   home.packages = with pkgs; [
     # Git
