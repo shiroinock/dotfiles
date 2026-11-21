@@ -1,6 +1,13 @@
 { pkgs, kandoPkgs, lib, config, ... }:
 let
   codexFontFamily = "PlemolJP Console NF";
+
+  # 自分の GitHub リポジトリに共通の設定(main の保護など)を入れるスクリプト
+  repo-baseline = pkgs.writeShellApplication {
+    name = "repo-baseline";
+    runtimeInputs = [ pkgs.gh ];
+    text = builtins.readFile ./scripts/repo-baseline.sh;
+  };
 in
 {
   home.stateVersion = "25.05";
@@ -51,6 +58,9 @@ in
     # Nix リンター
     statix
     deadnix
+
+    # 自作スクリプト
+    repo-baseline
   ];
 
   # npm グローバルパッケージ用 prefix（nix の store は read-only のため）
