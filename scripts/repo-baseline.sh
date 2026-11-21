@@ -6,6 +6,7 @@
 #   - マージ方法はマージコミットのみ(スカッシュとリベースは無効)
 #   - 自動マージを許可、マージ後にブランチを自動削除、「Update branch」ボタンを出す
 #   - シークレットスキャンと push protection(使えないプランでは飛ばす)
+#   - Dependabot の脆弱性アラートをオン。自動の修正 PR はオフ(修正の PR は Renovate が出す)
 #   - ルールセット「main を守る」: デフォルトブランチの削除と force push を禁止し、PR を必須にする
 #     (承認は 0 人、マージコミットのみ)。同名のルールセットが既にあれば触らない。
 set +e  # 失敗は1件ずつ報告して先へ進む
@@ -65,6 +66,13 @@ JSON
     echo "   シークレットスキャン: $ss"
   else
     echo "   シークレットスキャン: このプランでは使えない"
+  fi
+
+  if gh api -X PUT "repos/$full/vulnerability-alerts" --silent 2>/dev/null; then
+    gh api -X DELETE "repos/$full/automated-security-fixes" --silent 2>/dev/null
+    echo "   Dependabot アラート: オン(自動の修正 PR はオフ)"
+  else
+    echo "   Dependabot アラート: 失敗"
   fi
 
   existing=$(gh api "repos/$full/rulesets" --jq ".[] | select(.name==\"$RULESET_NAME\") | .id" 2>/dev/null || true)
