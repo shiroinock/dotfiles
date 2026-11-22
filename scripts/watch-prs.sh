@@ -47,11 +47,12 @@ while :; do
     # StatusContext(commit status:名前は context、結果は state)。
     # 走っている = CheckRun は COMPLETED でないもの、StatusContext は PENDING / EXPECTED。
     # 失敗 = 通ったと言える結論(SUCCESS / NEUTRAL / SKIPPED)以外。STARTUP_FAILURE や STALE も数える。
-    # CANCELLED も失敗に数える(手で止めた検査を見逃さない)。ただし同じ名前の検査が別に通って
-    # いるときは数えない(同じコミットの run が concurrency で取り消されたときに出るため)。
+    # CANCELLED も失敗に数える(手で止めた検査を見逃さない)。ただし同じ workflow の同じ名前の
+    # 検査が別に SUCCESS で終わっているときは数えない(同じコミットの run が concurrency で
+    # 取り消されたときに出るため)。スキップされた run は何も確かめていないので数に入れない。
     line=$(jq -r --argjson el "$el" --arg rname "$review" '
-      (.statusCheckRollup // [] | map(. + {name: (.name // .context)})) as $c
-      | ($c | map(select(.conclusion == "SUCCESS" or .conclusion == "NEUTRAL" or .conclusion == "SKIPPED" or .state == "SUCCESS") | .name)) as $ok
+      (.statusCheckRollup // [] | map(. + {name: (.name // .context)} | . + {key: "\(.workflowName // "")/\(.name)"})) as $c
+      | ($c | map(select(.conclusion == "SUCCESS" or .state == "SUCCESS") | .key)) as $ok
       | ($c | map(select(if .__typename == "StatusContext"
                          then (.state == "PENDING" or .state == "EXPECTED")
                          else .status != "COMPLETED" end))) as $run
@@ -59,7 +60,7 @@ while :; do
                          then (.state == "FAILURE" or .state == "ERROR")
                          else (.status == "COMPLETED" and ((.conclusion // "") as $x
                                | ($x == "SUCCESS" or $x == "NEUTRAL" or $x == "SKIPPED") | not)) end)
-                  | select(.conclusion != "CANCELLED" or (.name as $n | any($ok[]; . == $n) | not))
+                  | select(.conclusion != "CANCELLED" or (.key as $k | any($ok[]; . == $k) | not))
                   | .name)) as $bad
       | (if $rname == "" then "-" else ($c | map(select(.name == $rname)) | map(.conclusion // .state)
                                   | if any(.[]; . == "SUCCESS") then "SUCCESS" else (first // "-") end) end) as $rv

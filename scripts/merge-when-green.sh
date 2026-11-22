@@ -5,14 +5,17 @@
 #   レビューの検査が SUCCESS なだけでは足りない(指摘を残しても SUCCESS で終わる)。
 #   直すものが無いときにレビューが付けるラベル(既定「マージ予約」)も要る。
 #   -n  レビューの検査が無い PR(review=-)もマージする。無いときはラベルも見ない。
-#   -l  直すものが無いことを表すラベルの名前
+#   -l  直すものが無いことを表すラベルの名前(空にはできない)
 allow_no_review=0
 label="マージ予約"
 pass=()
 while getopts nl:t:r: opt; do
   case "$opt" in
     n) allow_no_review=1 ;;
-    l) label=$OPTARG ;;
+    l)
+      # 空にするとラベルの無い PR が照らし合わせを素通りするので受け付けない
+      [ -n "$OPTARG" ] || { echo "merge-when-green では -l を空にできない" >&2; exit 2; }
+      label=$OPTARG ;;
     t) pass+=(-t "$OPTARG") ;;
     r)
       # 空にするとレビューを見なくなり、指摘があってもマージできてしまうので受け付けない
