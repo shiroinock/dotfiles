@@ -8,6 +8,20 @@ let
     runtimeInputs = [ pkgs.gh ];
     text = builtins.readFile ./scripts/repo-baseline.sh;
   };
+
+  # PR の検査が落ち着くまで見張り、結果を1行ずつ出すスクリプト
+  watch-prs = pkgs.writeShellApplication {
+    name = "watch-prs";
+    runtimeInputs = [ pkgs.gh pkgs.jq pkgs.coreutils ];
+    text = builtins.readFile ./scripts/watch-prs.sh;
+  };
+
+  # watch-prs で緑になった PR をマージコミットでマージするスクリプト
+  merge-when-green = pkgs.writeShellApplication {
+    name = "merge-when-green";
+    runtimeInputs = [ pkgs.gh watch-prs ];
+    text = builtins.readFile ./scripts/merge-when-green.sh;
+  };
 in
 {
   home.stateVersion = "25.05";
@@ -61,6 +75,8 @@ in
 
     # 自作スクリプト
     repo-baseline
+    watch-prs
+    merge-when-green
   ];
 
   # npm グローバルパッケージ用 prefix（nix の store は read-only のため）
