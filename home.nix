@@ -2,12 +2,15 @@
 let
   codexFontFamily = "PlemolJP Console NF";
 
-  # 自分の GitHub リポジトリに共通の設定(main の保護など)を入れるスクリプト
-  repo-baseline = pkgs.writeShellApplication {
-    name = "repo-baseline";
-    runtimeInputs = [ pkgs.gh ];
-    text = builtins.readFile ./scripts/repo-baseline.sh;
-  };
+  # 自分の GitHub リポジトリに共通の設定(ワークフロー・シークレット・main の保護など)を入れるコマンドと、
+  # リポジトリを作って同じ設定を入れるコマンド。中身は shiroinock/workflows にあり、テンプレートと同じ版を
+  # その場で取ってきて動かす(nix が PATH にあること)。
+  repo-baseline = pkgs.writeShellScriptBin "repo-baseline" ''
+    exec nix run github:shiroinock/workflows#repo-baseline -- "$@"
+  '';
+  repo-new = pkgs.writeShellScriptBin "repo-new" ''
+    exec nix run github:shiroinock/workflows#repo-new -- "$@"
+  '';
 
   # PR の検査が落ち着くまで見張り、結果を1行ずつ出すスクリプト
   watch-prs = pkgs.writeShellApplication {
@@ -102,6 +105,7 @@ in
 
     # 自作スクリプト
     repo-baseline
+    repo-new
     watch-prs
     merge-when-green
   ];
