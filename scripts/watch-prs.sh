@@ -43,11 +43,22 @@ while :; do
     if ! j=$(gh pr view "${s#*#}" -R "${s%#*}" --json state,labels,autoMergeRequest,statusCheckRollup 2>/dev/null); then
       left=1; continue
     fi
+    # 検査は2種類ある。CheckRun(Actions など:status と conclusion)と、
+    # StatusContext(commit status:名前は context、結果は state)。
+    # 走っている = CheckRun は COMPLETED でないもの、StatusContext は PENDING / EXPECTED。
+    # 失敗 = 通ったと言える結論(SUCCESS / NEUTRAL / SKIPPED)と、concurrency で取り消された
+    # CANCELLED 以外。STARTUP_FAILURE や STALE も失敗に数える。
     line=$(jq -r --argjson el "$el" --arg rname "$review" '
-      (.statusCheckRollup // []) as $c
-      | ($c | map(select((.status // .state) as $x | ($x=="IN_PROGRESS" or $x=="QUEUED" or $x=="PENDING" or $x=="WAITING" or $x=="EXPECTED")))) as $run
-      | ($c | map(select((.conclusion // .state) as $x | ($x=="FAILURE" or $x=="ERROR" or $x=="TIMED_OUT" or $x=="ACTION_REQUIRED")) | .name)) as $bad
-      | (if $rname == "" then "-" else ($c | map(select(.name == $rname)) | map(.conclusion) | first // "-") end) as $rv
+      (.statusCheckRollup // [] | map(. + {name: (.name // .context)})) as $c
+      | ($c | map(select(if .__typename == "StatusContext"
+                         then (.state == "PENDING" or .state == "EXPECTED")
+                         else .status != "COMPLETED" end))) as $run
+      | ($c | map(select(if .__typename == "StatusContext"
+                         then (.state == "FAILURE" or .state == "ERROR")
+                         else (.status == "COMPLETED" and ((.conclusion // "") as $x
+                               | ($x == "SUCCESS" or $x == "NEUTRAL" or $x == "SKIPPED" or $x == "CANCELLED") | not)) end)
+                  | .name)) as $bad
+      | (if $rname == "" then "-" else ($c | map(select(.name == $rname)) | map(.conclusion // .state) | first // "-") end) as $rv
       | if .state != "OPEN" or ($el >= 90 and ($c|length) > 0 and ($run|length) == 0) or (($c|length) == 0 and $el >= 180)
         then "\(.state) review=\($rv) fail=[\($bad|join(","))] labels=[\([.labels[].name]|join(","))] auto=\(.autoMergeRequest != null)"
         else empty end' <<<"$j")
