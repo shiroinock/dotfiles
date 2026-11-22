@@ -32,3 +32,4 @@ nix flake update
 - Homebrew は GUI アプリ (casks) 専用。Homebrew 7 で固定版 nix-darwin モジュールの `--cleanup` が使えないため、`onActivation.cleanup = "none"` にしている。casks リストから外したアプリは自動削除されないので、`brew uninstall --cask` で手動で消す
 - zsh の `compinit` は Home Manager 側で `-u` 付きで実行し、system.nix 側では無効化している
 - npm グローバルパッケージは `~/.npm-global` に配置（nix store が read-only のため）
+- git の `core.hooksPath` は Home Manager で配る共通のフック(`scripts/git-hooks/`)。共通の処理のあと、各リポジトリの `.git/hooks/<名前>` を呼ぶ。いまの共通の処理は pre-push だけで、`.github/workflows/static-rules.yml` のあるリポジトリでは shiroinock/workflows の共通の静的ルールを流し、直せるものは直して push を止める(`SKIP_STATIC_RULES=1` で飛ばせる)。リポジトリが自分で `core.hooksPath` を設定しているとき(husky など)は、そちらが優先される

@@ -22,6 +22,31 @@ let
     runtimeInputs = [ pkgs.gh watch-prs ];
     text = builtins.readFile ./scripts/merge-when-green.sh;
   };
+
+  # push の前に、shiroinock/workflows の共通の静的ルールを流して直す(static-rules.yml のあるリポジトリだけ)
+  static-rules-pre-push = pkgs.writeShellApplication {
+    name = "static-rules-pre-push";
+    runtimeInputs = [ pkgs.git ];
+    text = builtins.readFile ./scripts/git-hooks/static-rules-pre-push.sh;
+  };
+
+  # core.hooksPath に置く共通のフック。共通の処理のあと、リポジトリ自身の .git/hooks/<名前> を呼ぶ。
+  # push-to-checkout などは、置くだけで git のふるまいが変わるので入れない。
+  git-hook-dispatch = pkgs.writeShellApplication {
+    name = "git-hook-dispatch";
+    runtimeInputs = [ pkgs.git pkgs.coreutils static-rules-pre-push ];
+    text = builtins.readFile ./scripts/git-hooks/dispatch.sh;
+  };
+  gitHookNames = [
+    "applypatch-msg" "pre-applypatch" "post-applypatch"
+    "pre-commit" "pre-merge-commit" "prepare-commit-msg" "commit-msg" "post-commit"
+    "pre-rebase" "post-checkout" "post-merge" "pre-push" "post-rewrite"
+    "reference-transaction" "post-index-change" "pre-auto-gc"
+  ];
+  git-hooks = pkgs.runCommand "git-hooks" { } (
+    "mkdir -p $out\n"
+    + lib.concatMapStrings (n: "ln -s ${lib.getExe git-hook-dispatch} $out/${n}\n") gitHookNames
+  );
 in
 {
   home.stateVersion = "25.05";
@@ -210,6 +235,7 @@ in
       init.defaultBranch = "main";
       push.autoSetupRemote = true;
       pull.rebase = true;
+      core.hooksPath = "${git-hooks}";
     };
   };
 
