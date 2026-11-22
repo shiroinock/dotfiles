@@ -46,19 +46,23 @@ while :; do
     # 検査は2種類ある。CheckRun(Actions など:status と conclusion)と、
     # StatusContext(commit status:名前は context、結果は state)。
     # 走っている = CheckRun は COMPLETED でないもの、StatusContext は PENDING / EXPECTED。
-    # 失敗 = 通ったと言える結論(SUCCESS / NEUTRAL / SKIPPED)と、concurrency で取り消された
-    # CANCELLED 以外。STARTUP_FAILURE や STALE も失敗に数える。
+    # 失敗 = 通ったと言える結論(SUCCESS / NEUTRAL / SKIPPED)以外。STARTUP_FAILURE や STALE も数える。
+    # CANCELLED も失敗に数える(手で止めた検査を見逃さない)。ただし同じ名前の検査が別に通って
+    # いるときは数えない(同じコミットの run が concurrency で取り消されたときに出るため)。
     line=$(jq -r --argjson el "$el" --arg rname "$review" '
       (.statusCheckRollup // [] | map(. + {name: (.name // .context)})) as $c
+      | ($c | map(select(.conclusion == "SUCCESS" or .conclusion == "NEUTRAL" or .conclusion == "SKIPPED" or .state == "SUCCESS") | .name)) as $ok
       | ($c | map(select(if .__typename == "StatusContext"
                          then (.state == "PENDING" or .state == "EXPECTED")
                          else .status != "COMPLETED" end))) as $run
       | ($c | map(select(if .__typename == "StatusContext"
                          then (.state == "FAILURE" or .state == "ERROR")
                          else (.status == "COMPLETED" and ((.conclusion // "") as $x
-                               | ($x == "SUCCESS" or $x == "NEUTRAL" or $x == "SKIPPED" or $x == "CANCELLED") | not)) end)
+                               | ($x == "SUCCESS" or $x == "NEUTRAL" or $x == "SKIPPED") | not)) end)
+                  | select(.conclusion != "CANCELLED" or (.name as $n | any($ok[]; . == $n) | not))
                   | .name)) as $bad
-      | (if $rname == "" then "-" else ($c | map(select(.name == $rname)) | map(.conclusion // .state) | first // "-") end) as $rv
+      | (if $rname == "" then "-" else ($c | map(select(.name == $rname)) | map(.conclusion // .state)
+                                  | if any(.[]; . == "SUCCESS") then "SUCCESS" else (first // "-") end) end) as $rv
       | if .state != "OPEN" or ($el >= 90 and ($c|length) > 0 and ($run|length) == 0) or (($c|length) == 0 and $el >= 180)
         then "\(.state) review=\($rv) fail=[\($bad|join(","))] labels=[\([.labels[].name]|join(","))] auto=\(.autoMergeRequest != null)"
         else empty end' <<<"$j")
