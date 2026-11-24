@@ -1,10 +1,12 @@
 # push の前に、shiroinock/workflows の共通の静的ルール(ast-grep)を、push するコミットに流す。
-# CI の static-rules.yml を置いているリポジトリだけが対象。CI は検査するだけで直さないので、ここで直す。
+# CI で共通の静的ルールを流しているリポジトリ(.github/workflows に pinact.yml か static-rules.yml がある)
+# だけが対象。静的ルールは pinact.yml のジョブで流れる(static-rules.yml は以前の置き場所)。CI は検査する
+# だけで直さないので、ここで直す。
 # 標準入力は pre-push と同じ(1行に `<local ref> <local sha> <remote ref> <remote sha>`)。
 #
 # - push するコミットごとに、そのコミットのファイルを一時ディレクトリに取り出して調べる。作業ツリーの
 #   変更や追跡していないファイル、チェックアウトしていないブランチの中身に左右されない。
-# - 消す push と、static-rules.yml を含まないコミットは調べない。
+# - 消す push と、pinact.yml も static-rules.yml も含まないコミットは調べない。
 # - 引っかかったコミットが HEAD で、追跡しているファイルに変更がなければ、直せるものを作業ツリーに直して
 #   push を止める(差分を確かめてコミットし、push し直す)。それ以外は、引っかかった場所を出して止める。
 # - ルールを取ってこられない(オフラインなど)ときは、警告を出して push は止めない。CI が見つける。
@@ -20,7 +22,8 @@ targets=()
 while read -r local_ref local_sha _remote_ref _remote_sha; do
   [ -n "${local_sha:-}" ] || continue
   [ -z "${local_sha//0/}" ] && continue # all zeros: a deletion
-  git cat-file -e "$local_sha:.github/workflows/static-rules.yml" 2>/dev/null || continue
+  git cat-file -e "$local_sha:.github/workflows/pinact.yml" 2>/dev/null ||
+    git cat-file -e "$local_sha:.github/workflows/static-rules.yml" 2>/dev/null || continue
   case " ${targets[*]-} " in *" $local_sha:"*) continue ;; esac
   targets+=("$local_sha:$local_ref")
 done
