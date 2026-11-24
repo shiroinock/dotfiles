@@ -26,7 +26,7 @@ let
     text = builtins.readFile ./scripts/merge-when-green.sh;
   };
 
-  # push の前に、shiroinock/workflows の共通の静的ルールを流して直す(static-rules.yml のあるリポジトリだけ)
+  # push の前に、shiroinock/workflows の共通の静的ルールを流して直す(pinact.yml か static-rules.yml のあるリポジトリだけ)
   static-rules-pre-push = pkgs.writeShellApplication {
     name = "static-rules-pre-push";
     runtimeInputs = [ pkgs.git pkgs.gnutar pkgs.diffutils pkgs.coreutils ];
