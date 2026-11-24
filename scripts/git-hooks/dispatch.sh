@@ -12,7 +12,13 @@
 # リポジトリが自分で core.hooksPath を設定しているとき(husky、pre-commit など)は、そちらが優先され、
 # これは呼ばれない。
 name=$(basename "$0")
-own="$(git rev-parse --git-common-dir)/hooks/$name"
+# git init と git clone は、.git に HEAD を書く前(HEAD.lock しか無いとき)に reference-transaction を呼ぶ。
+# そのときは rev-parse がリポジトリと認めず失敗するので、リポジトリ自身のフックは無いものとして続ける。
+# (できたばかりの .git/hooks には *.sample しか無く、呼ぶものは無い)
+own=""
+if common=$(git rev-parse --git-common-dir 2> /dev/null); then
+  own="$common/hooks/$name"
+fi
 
 stdin_file=""
 if [ "$name" = pre-push ]; then
